@@ -1,11 +1,15 @@
 <script setup>
-import { ref, onMounted } from 'vue'
+import { ref } from 'vue'
 import { useRouter } from 'vue-router'
 import gsap from 'gsap'
 import JarvisLayout from '../layouts/JarvisLayout.vue'
 import { resolveDestination } from '../router'
+import { unlockAudio, playSound } from '../composables/useSound'
+import typeSound from '../assets/audio/type-tick.wav'
+import greetingSound from '../assets/audio/greeting-vlad.mp3'
 
 const router = useRouter()
+const activated = ref(false)
 const bootLines = ref([])
 const progress = ref(0)
 const showButton = ref(false)
@@ -16,6 +20,30 @@ const log = [
   '> ІДЕНТИФІКАЦІЯ КОРИСТУВАЧА: ВЛАД ... OK',
   '> З ДНЕМ НАРОДЖЕННЯ. ГОТОВИЙ ДО ІНІЦІАЛІЗАЦІЇ.'
 ]
+
+function activateSystem() {
+  activated.value = true
+  unlockAudio(typeSound).then(() => {
+    runIntroSequence()
+  })
+}
+
+function runIntroSequence() {
+  const reduceMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches
+
+  if (reduceMotion) {
+    bootLines.value = [...log]
+    progress.value = 100
+    showButton.value = true
+    return
+  }
+
+  const tl = gsap.timeline({ defaults: { ease: 'power2.out' } })
+  tl.from('.core', { opacity: 0, scale: 0.6, duration: 0.8 })
+    .from('.title', { opacity: 0, y: 16, duration: 0.6 }, '-=0.3')
+    .from('.subtitle', { opacity: 0, y: 10, duration: 0.5 }, '-=0.3')
+    .eventCallback('onComplete', runBootSequence)
+}
 
 async function start() {
   const dest = await resolveDestination()
@@ -30,6 +58,9 @@ function typeLine(text) {
     function step() {
       i++
       bootLines.value[idx] = text.slice(0, i)
+      if (i % 2 === 0) {
+        playSound('type-tick', typeSound, { volume: 0.15 })
+      }
       if (i < text.length) {
         setTimeout(step, 14 + Math.random() * 18)
       } else {
@@ -70,57 +101,57 @@ async function runBootSequence() {
   await Promise.all([runBootLines(), runFakeProgress()])
   showButton.value = true
   gsap.from('.jarvis-btn', { opacity: 0, y: 10, duration: 0.5 })
+  playSound('greeting-vlad', greetingSound, { volume: 0.9 })
 }
-
-onMounted(() => {
-  const reduceMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches
-
-  if (reduceMotion) {
-    bootLines.value = [...log]
-    progress.value = 100
-    showButton.value = true
-    return
-  }
-
-  const tl = gsap.timeline({ defaults: { ease: 'power2.out' } })
-  tl.from('.core', { opacity: 0, scale: 0.6, duration: 0.8 })
-    .from('.title', { opacity: 0, y: 16, duration: 0.6 }, '-=0.3')
-    .from('.subtitle', { opacity: 0, y: 10, duration: 0.5 }, '-=0.3')
-    .eventCallback('onComplete', runBootSequence)
-})
 </script>
 
 <template>
   <JarvisLayout eyebrow="ОСОБИСТИЙ ІНТЕРФЕЙС">
-    <div class="core" aria-hidden="true">
-      <div class="ring ring-outer"></div>
-      <div class="ring ring-mid"></div>
-      <div class="ring ring-inner"></div>
-      <div class="core-dot"></div>
-    </div>
-
-    <h1 class="title">J&nbsp;·&nbsp;A&nbsp;·&nbsp;R&nbsp;·&nbsp;V&nbsp;·&nbsp;I&nbsp;·&nbsp;S</h1>
-    <p class="subtitle">Система активна. Очікую команди.</p>
-
-    <div class="boot-log">
-      <p v-for="(line, i) in bootLines" :key="i" class="boot-line">
-        {{ line }}<span v-if="i === bootLines.length - 1 && !showButton" class="cursor">▋</span>
-      </p>
-    </div>
-
-    <div class="progress-wrap">
-      <div class="progress-label">
-        <span>ЗАВАНТАЖЕННЯ СИСТЕМИ</span>
-        <span>{{ Math.floor(progress) }}%</span>
+    <template v-if="!activated">
+      <div class="core" aria-hidden="true">
+        <div class="ring ring-outer"></div>
+        <div class="ring ring-mid"></div>
+        <div class="ring ring-inner"></div>
+        <div class="core-dot"></div>
       </div>
-      <div class="progress-track">
-        <div class="progress-fill" :style="{ width: progress + '%' }"></div>
-      </div>
-    </div>
+      <h1 class="title">J&nbsp;·&nbsp;A&nbsp;·&nbsp;R&nbsp;·&nbsp;V&nbsp;·&nbsp;I&nbsp;·&nbsp;S</h1>
+      <p class="subtitle">Система в режимі очікування.</p>
+      <button class="jarvis-btn" @click="activateSystem">
+        <span>АКТИВУВАТИ СИСТЕМУ</span>
+      </button>
+    </template>
 
-    <button v-if="showButton" class="jarvis-btn" @click="start">
-      <span>ІНІЦІЮВАТИ</span>
-    </button>
+    <template v-else>
+      <div class="core" aria-hidden="true">
+        <div class="ring ring-outer"></div>
+        <div class="ring ring-mid"></div>
+        <div class="ring ring-inner"></div>
+        <div class="core-dot"></div>
+      </div>
+
+      <h1 class="title">J&nbsp;·&nbsp;A&nbsp;·&nbsp;R&nbsp;·&nbsp;V&nbsp;·&nbsp;I&nbsp;·&nbsp;S</h1>
+      <p class="subtitle">Система активна. Очікую команди.</p>
+
+      <div class="boot-log">
+        <p v-for="(line, i) in bootLines" :key="i" class="boot-line">
+          {{ line }}<span v-if="i === bootLines.length - 1 && !showButton" class="cursor">▋</span>
+        </p>
+      </div>
+
+      <div class="progress-wrap">
+        <div class="progress-label">
+          <span>ЗАВАНТАЖЕННЯ СИСТЕМИ</span>
+          <span>{{ Math.floor(progress) }}%</span>
+        </div>
+        <div class="progress-track">
+          <div class="progress-fill" :style="{ width: progress + '%' }"></div>
+        </div>
+      </div>
+
+      <button v-if="showButton" class="jarvis-btn" @click="start">
+        <span>ІНІЦІЮВАТИ</span>
+      </button>
+    </template>
   </JarvisLayout>
 </template>
 

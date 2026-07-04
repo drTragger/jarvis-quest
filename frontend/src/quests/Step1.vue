@@ -3,6 +3,8 @@ import { ref, onMounted } from 'vue'
 import gsap from 'gsap'
 import { useQuestStep } from '../composables/useQuestStep'
 import { useHint } from '../composables/useHint'
+import { playSound, unlockAudio } from '../composables/useSound'
+import step1Voice from '../assets/audio/step1-voice.mp3'
 
 const { loading, error, submitAnswer } = useQuestStep(1)
 const { scanning, revealed, hintText, remaining, cooldown, checkHint } = useHint(1)
@@ -13,6 +15,9 @@ onMounted(() => {
   const tl = gsap.timeline({ defaults: { ease: 'power2.out' } })
   tl.from('.dossier', { opacity: 0, y: 24, rotate: -4, duration: 0.6 })
     .from('.stamp', { opacity: 0, scale: 2, rotate: -25, duration: 0.4, ease: 'back.out(3)' }, '-=0.2')
+    .eventCallback('onComplete', () => {
+      playSound('step1-voice', step1Voice, { volume: 0.9 })
+    })
 })
 
 async function submit() {

@@ -6,6 +6,9 @@ import JarvisLayout from '../layouts/JarvisLayout.vue'
 import { setPassword } from '../lib/auth'
 import { invalidateProgressCache } from '../router'
 import { stepIds } from '../data/steps'
+import { playSound } from '../composables/useSound'
+import errorSound from '../assets/audio/access-denied.wav'
+import grantedVoice from '../assets/audio/access-granted.mp3'
 
 const router = useRouter()
 const password = ref('')
@@ -23,6 +26,7 @@ async function submit() {
 
   if (res.status === 401) {
     error.value = true
+    playSound('access-denied', errorSound, { volume: 0.6 })
     gsap.fromTo('.login-input', { x: -6 }, { x: 0, duration: 0.4, ease: 'elastic.out(1, 0.4)' })
     return
   }
@@ -37,10 +41,17 @@ async function submit() {
 
   granted.value = true
 
+  const voice = playSound('access-granted-voice', grantedVoice, { volume: 0.9 })
+
   await gsap.timeline()
     .from('.granted-core', { opacity: 0, scale: 0.5, duration: 0.5, ease: 'back.out(2)' })
     .from('.granted-text', { opacity: 0, y: 10, duration: 0.4 }, '-=0.2')
-    .to({}, { duration: 0.7 })
+
+  await new Promise((resolve) => {
+    voice.once('end', resolve)
+    voice.once('loaderror', resolve)
+    voice.once('playerror', resolve)
+  })
 
   router.push(dest)
 }
