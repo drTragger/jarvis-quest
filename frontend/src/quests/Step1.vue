@@ -4,9 +4,10 @@ import gsap from 'gsap'
 import { useQuestStep } from '../composables/useQuestStep'
 import { useHint } from '../composables/useHint'
 import { playSound, unlockAudio } from '../composables/useSound'
+import StepSuccessOverlay from '../components/StepSuccessOverlay.vue'
 import step1Voice from '../assets/audio/step1-voice.mp3'
 
-const { loading, error, submitAnswer } = useQuestStep(1)
+const { loading, error, success, submitAnswer, proceedAfterSuccess } = useQuestStep(1)
 const { scanning, revealed, hintText, remaining, cooldown, checkHint } = useHint(1)
 const answer = ref('')
 const rejected = ref(false)
@@ -35,6 +36,7 @@ async function submit() {
 
 <template>
   <section class="dossier-page">
+    <StepSuccessOverlay v-if="success" @done="proceedAfterSuccess" />
     <div class="dossier">
       <div class="stamp" aria-hidden="true">
         <span>ЗАСЕКРЕЧЕНО</span>

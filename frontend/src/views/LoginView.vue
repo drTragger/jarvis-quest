@@ -35,9 +35,7 @@ async function submit() {
   setPassword(password.value)
   invalidateProgressCache()
 
-  const dest = stepIds.includes(data.unlocked)
-  ? { name: 'quest-step', params: { stepId: data.unlocked } }
-  : { name: 'finish' }
+  const dest = stepIds.includes(data.unlocked) ? { name: 'hub' } : { name: 'finish' }
 
   granted.value = true
 

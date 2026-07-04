@@ -57,6 +57,10 @@ export function stopSound(key) {
 	if (sound) sound.stop()
 }
 
+export function stopAllSounds() {
+	cache.forEach((sound) => sound.stop())
+}
+
 if (typeof window !== 'undefined') {
 	const resumeCtx = () => {
 		if (Howler.ctx && Howler.ctx.state === 'suspended') {

@@ -4,7 +4,6 @@ import (
 	"crypto/sha256"
 	"encoding/hex"
 	"encoding/json"
-	"fmt"
 	"net/http"
 	"strconv"
 	"strings"
@@ -15,6 +14,7 @@ const passwordHash = "bd2db407d9a55fe38c78ab85cae88528f6fdfcb441912c6b3e27afe583
 
 var stepAnswers = map[string]string{
 	"step1": "040eb379271f55d0ddbc0abca1ab71b5307b7bd898592b4be8b3e60dc6d844e2",
+	"step2": "6ed8919ce20490a5e3ad8630a4fab69475297abd07db73918dd5f36fcfaeb11b",
 }
 
 type hintRule struct {
@@ -27,7 +27,12 @@ var stepHints = map[string]hintRule{
 	"step1": {
 		DelaySeconds: 120,
 		MaxAttempts:  2,
-		Text:         "Антонім слова \"stupid\". Дев'ять літер. Перша — I.",
+		Text:         "Антонім слова \"stupid\". Одинадцять літер. Перша — I.",
+	},
+	"step2": {
+		DelaySeconds: 300,
+		MaxAttempts:  3,
+		Text:         "Слухати марно. Потрібен інструмент, що малює звук частотою і часом. П'ять літер.",
 	},
 }
 
@@ -52,9 +57,22 @@ func (h *QuestHandler) GetProgress(w http.ResponseWriter, r *http.Request) {
 	}
 
 	unlocked := h.Store.Get()
-	h.Store.EnsureStepStarted(fmt.Sprintf("step%d", unlocked))
-
 	json.NewEncoder(w).Encode(map[string]any{"unlocked": unlocked})
+}
+
+func (h *QuestHandler) StartStep(w http.ResponseWriter, r *http.Request) {
+	password := r.URL.Query().Get("password")
+	stepID := r.URL.Query().Get("step_id")
+	w.Header().Set("Content-Type", "application/json")
+
+	if !hashMatches(password, passwordHash) {
+		w.WriteHeader(http.StatusUnauthorized)
+		json.NewEncoder(w).Encode(map[string]bool{"ok": false})
+		return
+	}
+
+	h.Store.EnsureStepStarted(stepID)
+	json.NewEncoder(w).Encode(map[string]bool{"ok": true})
 }
 
 func (h *QuestHandler) ValidateAnswer(w http.ResponseWriter, r *http.Request) {

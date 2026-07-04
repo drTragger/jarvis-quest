@@ -8,6 +8,10 @@ export function useQuestStep(stepId) {
   const router = useRouter()
   const loading = ref(false)
   const error = ref(false)
+  const success = ref(false)
+  let pendingDestination = null
+
+  fetch(`/api/step/start?password=${encodeURIComponent(getPassword())}&step_id=step${stepId}`).catch(() => {})
 
   async function submitAnswer(answer) {
     if (loading.value) return false
@@ -40,9 +44,14 @@ export function useQuestStep(stepId) {
 
     invalidateProgressCache()
     const hasNext = stepIds.includes(data.unlocked)
-    router.push(hasNext ? { name: 'quest-step', params: { stepId: data.unlocked } } : { name: 'finish' })
+    pendingDestination = hasNext ? { name: 'hub' } : { name: 'finish' }
+    success.value = true
     return true
   }
 
-  return { loading, error, submitAnswer }
+  function proceedAfterSuccess() {
+    if (pendingDestination) router.push(pendingDestination)
+  }
+
+  return { loading, error, success, submitAnswer, proceedAfterSuccess }
 }

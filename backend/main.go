@@ -21,6 +21,7 @@ func main() {
 	mux.HandleFunc("/api/answer", quest.ValidateAnswer)
 	mux.HandleFunc("/api/progress", quest.GetProgress)
 	mux.HandleFunc("/api/hint", quest.GetHint)
+	mux.HandleFunc("/api/step/start", quest.StartStep)
 	mux.HandleFunc("/api/health", func(w http.ResponseWriter, r *http.Request) {
 		json.NewEncoder(w).Encode(map[string]string{"status": "ok"})
 	})
