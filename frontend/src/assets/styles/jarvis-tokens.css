@@ -1,0 +1,11 @@
+:root {
+  --jarvis-bg: #05070a;
+  --jarvis-bg-soft: #0d1220;
+  --jarvis-purple: #7e14ff;
+  --jarvis-cyan: #47bfff;
+  --jarvis-text: #e8e6f0;
+  --jarvis-text-dim: #9ca3af;
+  --jarvis-danger: #ff5470;
+  --jarvis-mono: 'Share Tech Mono', monospace;
+  --jarvis-display: 'Orbitron', sans-serif;
+}

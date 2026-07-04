@@ -5,12 +5,22 @@ import (
 	"jarvis-quest/backend/handlers"
 	"log"
 	"net/http"
+	"os"
 )
 
 func main() {
+	if wd, err := os.Getwd(); err == nil {
+		log.Printf("Working directory: %s", wd)
+	}
+
 	mux := http.NewServeMux()
 
-	mux.HandleFunc("/api/answer", handlers.ValidateAnswer)
+	store := handlers.NewProgressStore("./progress.json")
+	quest := &handlers.QuestHandler{Store: store}
+
+	mux.HandleFunc("/api/answer", quest.ValidateAnswer)
+	mux.HandleFunc("/api/progress", quest.GetProgress)
+	mux.HandleFunc("/api/hint", quest.GetHint)
 	mux.HandleFunc("/api/health", func(w http.ResponseWriter, r *http.Request) {
 		json.NewEncoder(w).Encode(map[string]string{"status": "ok"})
 	})

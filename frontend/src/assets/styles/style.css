@@ -1,1 +1,4 @@
+@import url('https://fonts.googleapis.com/css2?family=Orbitron:wght@500;700;900&family=Share+Tech+Mono&family=Special+Elite&family=Oswald:wght@600;700&display=swap');
+@import "./jarvis-tokens.css";
 @import "tailwindcss";
+@import "./jarvis-components.css";

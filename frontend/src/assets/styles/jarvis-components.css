@@ -1,0 +1,50 @@
+.jarvis-btn {
+  padding: 14px 36px;
+  min-height: 44px;
+  background: transparent;
+  border: 1px solid var(--jarvis-purple);
+  color: var(--jarvis-text);
+  font-family: var(--jarvis-display);
+  font-size: clamp(12px, 3vw, 14px);
+  letter-spacing: 3px;
+  cursor: pointer;
+  clip-path: polygon(12px 0, 100% 0, 100% calc(100% - 12px), calc(100% - 12px) 100%, 0 100%, 0 12px);
+  transition: background 0.25s, box-shadow 0.25s;
+}
+.jarvis-btn:hover,
+.jarvis-btn:focus-visible {
+  background: rgba(126, 20, 255, 0.15);
+  box-shadow: 0 0 24px rgba(126, 20, 255, 0.5);
+  outline: none;
+}
+.jarvis-btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+  box-shadow: none;
+}
+
+.jarvis-input {
+  width: 100%;
+  padding: 12px 14px;
+  background: rgba(255, 255, 255, 0.03);
+  border: 1px solid rgba(126, 20, 255, 0.35);
+  color: var(--jarvis-text);
+  font-family: var(--jarvis-mono);
+  font-size: clamp(13px, 3vw, 15px);
+  letter-spacing: 1px;
+  outline: none;
+  box-sizing: border-box;
+  transition: border-color 0.2s, box-shadow 0.2s;
+}
+.jarvis-input::placeholder {
+  color: var(--jarvis-text-dim);
+  letter-spacing: 1px;
+}
+.jarvis-input:focus {
+  border-color: var(--jarvis-cyan);
+  box-shadow: 0 0 12px rgba(71, 191, 255, 0.35);
+}
+.jarvis-input.is-error {
+  border-color: var(--jarvis-danger);
+  box-shadow: 0 0 12px rgba(255, 84, 112, 0.35);
+}
