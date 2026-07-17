@@ -15,6 +15,8 @@ const passwordHash = "bd2db407d9a55fe38c78ab85cae88528f6fdfcb441912c6b3e27afe583
 var stepAnswers = map[string]string{
 	"step1": "040eb379271f55d0ddbc0abca1ab71b5307b7bd898592b4be8b3e60dc6d844e2",
 	"step2": "6ed8919ce20490a5e3ad8630a4fab69475297abd07db73918dd5f36fcfaeb11b",
+	"step3": "2c0c2cef2d45475adbef682180c2c37848f7631800e185ad16694edabcf57a48",
+	"step4": "18d63be10ad544a04a22c944dee01d6d864ec69b797a58edae92e6a44ad8fdbf",
 }
 
 type hintRule struct {
@@ -27,12 +29,22 @@ var stepHints = map[string]hintRule{
 	"step1": {
 		DelaySeconds: 120,
 		MaxAttempts:  2,
-		Text:         "Антонім слова \"stupid\". Одинадцять літер. Перша — I.",
+		Text:         "Антонім слова \"stupid\". Одинадцять літер. Перша — i.",
 	},
 	"step2": {
 		DelaySeconds: 300,
 		MaxAttempts:  3,
 		Text:         "Слухати марно. Потрібен інструмент, що малює звук частотою і часом. П'ять літер.",
+	},
+	"step3": {
+		DelaySeconds: 240,
+		MaxAttempts:  2,
+		Text:         "Кожна пара цифр — код символу в шістнадцятковій системі (ASCII). Переведи кожен байт у літеру.",
+	},
+	"step4": {
+		DelaySeconds: 260,
+		MaxAttempts:  3,
+		Text:         "Це слово описує саме те, чим ця перевірка підозрює, що ти є. П'ять літер, з малої.",
 	},
 }
 
