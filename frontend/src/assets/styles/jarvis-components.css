@@ -48,3 +48,11 @@
   border-color: var(--jarvis-danger);
   box-shadow: 0 0 12px rgba(255, 84, 112, 0.35);
 }
+
+@media (max-width: 560px) {
+  /* iOS Safari auto-zooms the page on focus if an input's font-size is
+     under 16px, which reads as a jarring/broken jump on entry. */
+  .jarvis-input {
+    font-size: 16px;
+  }
+}

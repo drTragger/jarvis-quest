@@ -87,7 +87,7 @@ function submit() {
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 12px;
+  gap: 14px;
 }
 .captcha-label {
   font-family: var(--jarvis-mono);

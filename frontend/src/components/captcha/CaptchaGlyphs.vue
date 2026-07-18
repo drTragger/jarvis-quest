@@ -124,7 +124,7 @@ onMounted(newCaptcha)
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 12px;
+  gap: 14px;
 }
 .captcha-label {
   font-family: var(--jarvis-mono);
@@ -140,7 +140,8 @@ onMounted(newCaptcha)
 }
 .glyphs-canvas {
   width: 100%;
-  height: 90px;
+  aspect-ratio: 320 / 90;
+  max-height: 90px;
   border: 1px solid rgba(126, 20, 255, 0.4);
   border-radius: 6px;
   display: block;

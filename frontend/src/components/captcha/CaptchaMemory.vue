@@ -75,8 +75,7 @@ onBeforeUnmount(() => {
         v-for="(color, i) in COLORS"
         :key="i"
         class="memory-tile"
-        :class="{ 'is-clicked': clickIndex === i }"
-        :style="{ background: color, opacity: activeIndex === i ? 1 : 0.3 }"
+        :style="{ background: color, opacity: (activeIndex === i || clickIndex === i) ? 1 : 0.3 }"
         :disabled="playing"
         @click="pick(i)"
         aria-label="Сегмент пам'яті"
@@ -92,7 +91,7 @@ onBeforeUnmount(() => {
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 16px;
+  gap: 14px;
 }
 .captcha-label {
   font-family: var(--jarvis-mono);
@@ -114,14 +113,10 @@ onBeforeUnmount(() => {
   border: 1px solid rgba(255, 255, 255, 0.2);
   border-radius: 8px;
   cursor: pointer;
-  transition: opacity 0.12s, transform 0.1s;
+  transition: opacity 0.12s;
 }
 .memory-tile:disabled {
   cursor: not-allowed;
-}
-.memory-tile.is-clicked {
-  transform: scale(0.9);
-  box-shadow: 0 0 0 3px rgba(255, 255, 255, 0.7), 0 0 18px rgba(255, 255, 255, 0.6);
 }
 .replay-btn {
   background: none;

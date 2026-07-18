@@ -2,7 +2,8 @@ export const stepComponents = {
   1: () => import('../quests/Step1.vue'),
   2: () => import('../quests/Step2.vue'),
   3: () => import('../quests/Step3.vue'),
-  4: () => import('../quests/Step4.vue')
+  4: () => import('../quests/Step4.vue'),
+  5: () => import('../quests/Step5.vue')
 }
 
 export const stepIds = Object.keys(stepComponents).map(Number).sort((a, b) => a - b)
@@ -28,11 +29,17 @@ export const collectibles = {
     title: 'Протокол перевірки людяності',
     excerpt: 'П\'ять спотворених перевірок розпізнано вручну. Система визнала оператора тим, чим і підозрювала.'
   },
+  5: {
+    date: 'ЗАПИС №5',
+    title: 'Приховані дані зображення',
+    excerpt: 'Біти найменшої значущості вилучено з пікселів. Шифр Цезаря розкрито вдруге застосованим зсувом.'
+  },
 }
 
 export const archiveRecords = {
   1: () => import('../quests/archive/Step1Record.vue'),
   2: () => import('../quests/archive/Step2Record.vue'),
   3: () => import('../quests/archive/Step3Record.vue'),
-  4: () => import('../quests/archive/Step4Record.vue')
+  4: () => import('../quests/archive/Step4Record.vue'),
+  5: () => import('../quests/archive/Step5Record.vue')
 }

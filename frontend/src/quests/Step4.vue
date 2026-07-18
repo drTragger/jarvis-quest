@@ -7,6 +7,7 @@ import { useHint } from '../composables/useHint'
 import StepSuccessOverlay from '../components/StepSuccessOverlay.vue'
 import { playSound } from '../composables/useSound'
 import step4Voice from '../assets/audio/step4-voice.mp3'
+import errorSound from '../assets/audio/access-denied.wav'
 import CaptchaMath from '../components/captcha/CaptchaMath.vue'
 import CaptchaOddOneOut from '../components/captcha/CaptchaOddOneOut.vue'
 import CaptchaGlyphs from '../components/captcha/CaptchaGlyphs.vue'
@@ -19,7 +20,7 @@ const ROUND_COMPONENTS = [CaptchaMath, CaptchaOddOneOut, CaptchaGlyphs, CaptchaM
 const TOTAL_ROUNDS = SECRET_LETTERS.length
 
 const { loading, error, success, submitAnswer, proceedAfterSuccess } = useQuestStep(STEP_ID)
-const { scanning, revealed, hintText, remaining, cooldown, checkHint } = useHint(STEP_ID)
+const { scanning, revealed, hintText, remainingLabel, cooldown, checkHint } = useHint(STEP_ID)
 
 const round = ref(1)
 const revealedLetters = ref([])
@@ -76,8 +77,9 @@ async function submit() {
   const ok = await submitAnswer(answer.value)
   if (!ok) {
     rejected.value = true
+    playSound('access-denied', errorSound, { volume: 0.6 })
     gsap.timeline()
-      .fromTo('.frame-content', { x: -5 }, { x: 0, duration: 0.4, ease: 'elastic.out(1, 0.4)' })
+      .fromTo('.frame-content', { x: -5 }, { x: 0, duration: 0.4, ease: 'elastic.out(1, 0.4)', clearProps: 'transform' })
       .eventCallback('onComplete', () => {
         setTimeout(() => { rejected.value = false }, 900)
       })
@@ -85,7 +87,7 @@ async function submit() {
 }
 
 onMounted(() => {
-  gsap.from('.frame-content', { opacity: 0, y: 16, duration: 0.5 })
+  gsap.from('.frame-content', { opacity: 0, y: 16, duration: 0.5, clearProps: 'transform' })
   playSound('step4-voice', step4Voice, { volume: 0.9 })
 })
 
@@ -150,8 +152,8 @@ onBeforeUnmount(() => {
         <button class="hint-btn" :disabled="scanning || cooldown" @click="checkHint">
           {{ scanning ? 'АНАЛІЗ...' : 'ЗАПУСТИТИ ПОГЛИБЛЕНИЙ АНАЛІЗ' }}
         </button>
-        <p v-if="remaining !== null" class="hint-wait">
-          Аналіз ще не завершено. Спробуй за {{ remaining }} с., або дай ще одну відповідь.
+        <p v-if="remainingLabel !== null" class="hint-wait">
+          Аналіз ще не завершено. Підказка стане доступною за {{ remainingLabel }}.
         </p>
       </template>
       <template v-else>
@@ -167,14 +169,14 @@ onBeforeUnmount(() => {
   font-family: var(--jarvis-display);
   font-weight: 700;
   font-size: clamp(18px, 4.4vw, 23px);
-  margin: 0 0 12px;
+  margin: 0 0 14px;
   text-shadow: 0 0 14px rgba(126, 20, 255, 0.5);
 }
 .subtitle {
   font-size: clamp(12px, 2.8vw, 14px);
   line-height: 1.6;
   color: var(--jarvis-text-dim);
-  margin: 0 0 18px;
+  margin: 0 0 20px;
 }
 .progress-line {
   font-family: var(--jarvis-mono);
@@ -189,8 +191,8 @@ onBeforeUnmount(() => {
   margin-bottom: 20px;
 }
 .letter-slot {
-  width: 34px;
-  height: 34px;
+  width: clamp(28px, 8vw, 34px);
+  height: clamp(28px, 8vw, 34px);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -198,7 +200,7 @@ onBeforeUnmount(() => {
   border-radius: 4px;
   font-family: var(--jarvis-mono);
   font-weight: 700;
-  font-size: 16px;
+  font-size: clamp(13px, 3.4vw, 16px);
   color: var(--jarvis-text-dim);
   background: rgba(255, 255, 255, 0.03);
 }
@@ -215,7 +217,7 @@ onBeforeUnmount(() => {
   margin-bottom: 6px;
 }
 .jarvis-btn {
-  margin-top: 4px;
+  margin-top: 16px;
 }
 .rejected-text {
   color: var(--jarvis-danger);

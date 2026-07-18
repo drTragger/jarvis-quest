@@ -9,6 +9,7 @@ import { playSound } from '../composables/useSound'
 import StepSuccessOverlay from '../components/StepSuccessOverlay.vue'
 import lockedVoice from '../assets/audio/step3-locked-voice.mp3'
 import unlockedVoice from '../assets/audio/step3-unlocked-voice.mp3'
+import errorSound from '../assets/audio/access-denied.wav'
 
 const STEP_ID = 3
 const REQUIRED_PLATFORM = 'desktop'
@@ -17,7 +18,7 @@ const { platform } = usePlatformDetect()
 const isLocked = computed(() => platform.value !== REQUIRED_PLATFORM)
 
 const { loading, error, success, submitAnswer, proceedAfterSuccess } = useQuestStep(STEP_ID)
-const { scanning, revealed, hintText, remaining, cooldown, checkHint } = useHint(STEP_ID)
+const { scanning, revealed, hintText, remainingLabel, cooldown, checkHint } = useHint(STEP_ID)
 const answer = ref('')
 const rejected = ref(false)
 
@@ -26,8 +27,9 @@ async function submit() {
   const ok = await submitAnswer(answer.value)
   if (!ok) {
     rejected.value = true
+    playSound('access-denied', errorSound, { volume: 0.6 })
     gsap.timeline()
-      .fromTo('.frame-content', { x: -5 }, { x: 0, duration: 0.4, ease: 'elastic.out(1, 0.4)' })
+      .fromTo('.frame-content', { x: -5 }, { x: 0, duration: 0.4, ease: 'elastic.out(1, 0.4)', clearProps: 'transform' })
       .eventCallback('onComplete', () => {
         setTimeout(() => { rejected.value = false }, 900)
       })
@@ -35,7 +37,7 @@ async function submit() {
 }
 
 onMounted(() => {
-  gsap.from('.frame-content', { opacity: 0, y: 16, duration: 0.5 })
+  gsap.from('.frame-content', { opacity: 0, y: 16, duration: 0.5, clearProps: 'transform' })
   playSound(
     isLocked.value ? 'step3-locked' : 'step3-unlocked',
     isLocked.value ? lockedVoice : unlockedVoice,
@@ -88,8 +90,8 @@ onMounted(() => {
           <button class="hint-btn" :disabled="scanning || cooldown" @click="checkHint">
             {{ scanning ? 'АНАЛІЗ...' : 'ЗАПУСТИТИ ПОГЛИБЛЕНИЙ АНАЛІЗ' }}
           </button>
-          <p v-if="remaining !== null" class="hint-wait">
-            Аналіз ще не завершено. Спробуй за {{ remaining }} с., або дай ще одну відповідь.
+          <p v-if="remainingLabel !== null" class="hint-wait">
+            Аналіз ще не завершено. Підказка стане доступною за {{ remainingLabel }}.
           </p>
         </template>
         <template v-else>
@@ -102,6 +104,19 @@ onMounted(() => {
 </template>
 
 <style scoped>
+.title {
+  font-family: var(--jarvis-display);
+  font-weight: 700;
+  font-size: clamp(19px, 4.8vw, 24px);
+  margin: 0 0 14px;
+  text-shadow: 0 0 14px rgba(126, 20, 255, 0.5);
+}
+.subtitle {
+  font-size: clamp(13px, 3vw, 15px);
+  line-height: 1.6;
+  color: var(--jarvis-text-dim);
+  margin: 0 0 20px;
+}
 .lock-icon {
   font-size: 48px;
   color: var(--jarvis-danger);

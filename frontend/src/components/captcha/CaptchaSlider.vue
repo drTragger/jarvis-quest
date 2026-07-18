@@ -75,7 +75,7 @@ onBeforeUnmount(() => {
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 8px;
+  gap: 14px;
 }
 .captcha-label {
   font-family: var(--jarvis-mono);

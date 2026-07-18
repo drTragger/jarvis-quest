@@ -64,10 +64,16 @@ async function submit() {
       <input
         v-model="password"
         type="password"
+        name="access-code"
         class="jarvis-input login-input"
         :class="{ 'is-error': error }"
         placeholder="КОД ДОСТУПУ"
-        autocomplete="off"
+        autocomplete="new-password"
+        autocorrect="off"
+        autocapitalize="off"
+        spellcheck="false"
+        data-lpignore="true"
+        data-1p-ignore
         @keyup.enter="submit"
       />
 

@@ -8,9 +8,10 @@ import { playSound } from '../composables/useSound'
 import StepSuccessOverlay from '../components/StepSuccessOverlay.vue'
 import transmissionFile from '../assets/audio/step2-transmission.wav'
 import step2Voice from '../assets/audio/step2-voice.mp3'
+import errorSound from '../assets/audio/access-denied.wav'
 
 const { loading, error, success, submitAnswer, proceedAfterSuccess } = useQuestStep(2)
-const { scanning, revealed, hintText, remaining, cooldown, checkHint } = useHint(2)
+const { scanning, revealed, hintText, remainingLabel, cooldown, checkHint } = useHint(2)
 const answer = ref('')
 const rejected = ref(false)
 const audioEl = ref(null)
@@ -101,6 +102,7 @@ async function submit() {
   const ok = await submitAnswer(answer.value)
   if (!ok) {
     rejected.value = true
+    playSound('access-denied', errorSound, { volume: 0.6 })
     gsap.timeline()
       .fromTo('.signal-panel', { x: -5 }, { x: 0, duration: 0.4, ease: 'elastic.out(1, 0.4)' })
       .fromTo('.rejected-tag', { opacity: 0, scale: 1.4 }, { opacity: 1, scale: 1, duration: 0.25 }, 0)
@@ -164,8 +166,8 @@ async function submit() {
           <button class="hint-btn" :disabled="scanning || cooldown" @click="checkHint">
             {{ scanning ? 'АНАЛІЗ...' : 'ЗАПУСТИТИ ПОГЛИБЛЕНИЙ АНАЛІЗ' }}
           </button>
-          <p v-if="remaining !== null" class="hint-wait">
-            Аналіз ще не завершено. Спробуй за {{ remaining }} с., або дай ще одну відповідь.
+          <p v-if="remainingLabel !== null" class="hint-wait">
+            Аналіз ще не завершено. Підказка стане доступною за {{ remainingLabel }}.
           </p>
         </template>
         <template v-else>
@@ -230,7 +232,8 @@ async function submit() {
 .signal-canvas {
   flex: 1;
   width: 100%;
-  height: 60px;
+  aspect-ratio: 400 / 80;
+  max-height: 80px;
   background: rgba(5, 7, 10, 0.6);
   border-radius: 4px;
 }
@@ -266,7 +269,7 @@ async function submit() {
   margin-bottom: 8px;
 }
 .rejected-tag {
-  margin-top: 14px;
+  margin-top: 12px;
   font-family: var(--jarvis-mono);
   font-size: clamp(11px, 2.6vw, 13px);
   color: var(--jarvis-danger);

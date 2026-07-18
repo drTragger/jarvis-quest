@@ -6,9 +6,10 @@ import { useHint } from '../composables/useHint'
 import { playSound, unlockAudio } from '../composables/useSound'
 import StepSuccessOverlay from '../components/StepSuccessOverlay.vue'
 import step1Voice from '../assets/audio/step1-voice.mp3'
+import errorSound from '../assets/audio/access-denied.wav'
 
 const { loading, error, success, submitAnswer, proceedAfterSuccess } = useQuestStep(1)
-const { scanning, revealed, hintText, remaining, cooldown, checkHint } = useHint(1)
+const { scanning, revealed, hintText, remainingLabel, cooldown, checkHint } = useHint(1)
 const answer = ref('')
 const rejected = ref(false)
 
@@ -26,6 +27,7 @@ async function submit() {
   const ok = await submitAnswer(answer.value)
   if (!ok) {
     rejected.value = true
+    playSound('access-denied', errorSound, { volume: 0.6 })
     gsap.timeline()
       .fromTo('.dossier', { x: -5 }, { x: 0, duration: 0.4, ease: 'elastic.out(1, 0.4)' })
       .fromTo('.rejected-stamp', { opacity: 0, scale: 1.6 }, { opacity: 1, scale: 1, duration: 0.25 }, 0)
@@ -81,8 +83,8 @@ async function submit() {
           <button class="hint-btn" :disabled="scanning || cooldown" @click="checkHint">
             {{ scanning ? 'СКАНУВАННЯ АРХІВУ...' : 'ЗАПУСТИТИ ДОДАТКОВЕ СКАНУВАННЯ' }}
           </button>
-          <p v-if="remaining !== null" class="hint-wait">
-            Архів ще не розшифрував фрагмент. Спробуй за {{ remaining }} с., або дай ще одну відповідь.
+          <p v-if="remainingLabel !== null" class="hint-wait">
+            Архів ще не розшифрував фрагмент. Підказка стане доступною за {{ remainingLabel }}.
           </p>
         </template>
         <template v-else>
@@ -214,6 +216,11 @@ async function submit() {
 }
 .dossier-input.is-error {
   border-bottom-color: #9c1f1f;
+}
+@media (max-width: 560px) {
+  .dossier-input {
+    font-size: 16px;
+  }
 }
 
 .stamp-btn {

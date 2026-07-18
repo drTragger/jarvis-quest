@@ -17,34 +17,30 @@ var stepAnswers = map[string]string{
 	"step2": "6ed8919ce20490a5e3ad8630a4fab69475297abd07db73918dd5f36fcfaeb11b",
 	"step3": "2c0c2cef2d45475adbef682180c2c37848f7631800e185ad16694edabcf57a48",
 	"step4": "18d63be10ad544a04a22c944dee01d6d864ec69b797a58edae92e6a44ad8fdbf",
+	"step5": "de194e1890197480e508de206d8c80816559d65be70f51b033ad71e6176499d9",
 }
 
+const hintDelay = 24 * time.Hour
+
 type hintRule struct {
-	DelaySeconds int
-	MaxAttempts  int
-	Text         string
+	Text string
 }
 
 var stepHints = map[string]hintRule{
 	"step1": {
-		DelaySeconds: 120,
-		MaxAttempts:  2,
-		Text:         "Антонім слова \"stupid\". Одинадцять літер. Перша — i.",
+		Text: "Антонім слова \"stupid\". Одинадцять літер. Перша — i.",
 	},
 	"step2": {
-		DelaySeconds: 300,
-		MaxAttempts:  3,
-		Text:         "Слухати марно. Потрібен інструмент, що малює звук частотою і часом. П'ять літер.",
+		Text: "Слухати марно. Потрібен інструмент, що малює звук частотою і часом. П'ять літер.",
 	},
 	"step3": {
-		DelaySeconds: 240,
-		MaxAttempts:  2,
-		Text:         "Кожна пара цифр — код символу в шістнадцятковій системі (ASCII). Переведи кожен байт у літеру.",
+		Text: "Кожна пара цифр — код символу в шістнадцятковій системі (ASCII). Переведи кожен байт у літеру.",
 	},
 	"step4": {
-		DelaySeconds: 260,
-		MaxAttempts:  3,
-		Text:         "Це слово описує саме те, чим ця перевірка підозрює, що ти є. П'ять літер, з малої.",
+		Text: "Це слово описує саме те, чим ця перевірка підозрює, що ти є. П'ять літер, з малої.",
+	},
+	"step5": {
+		Text: "Відкрий зображення в будь-якому фоторедакторі (навіть у стандартному додатку «Фото» на телефоні) і сильно підніми яскравість або контраст. У найтемнішому кутку зображення проявиться текст. Прочитане слово додатково зашифроване шифром Цезаря зі зсувом 13 (ROT13) — застосуй той самий зсув ще раз.",
 	},
 }
 
@@ -69,7 +65,63 @@ func (h *QuestHandler) GetProgress(w http.ResponseWriter, r *http.Request) {
 	}
 
 	unlocked := h.Store.Get()
-	json.NewEncoder(w).Encode(map[string]any{"unlocked": unlocked})
+	json.NewEncoder(w).Encode(map[string]any{
+		"unlocked":        unlocked,
+		"onboarding_seen": h.Store.GetOnboardingSeen(),
+		"rules_seen":      h.Store.GetRulesSeen(),
+	})
+}
+
+func (h *QuestHandler) MarkRulesSeen(w http.ResponseWriter, r *http.Request) {
+	if r.Method != http.MethodPost {
+		http.Error(w, "method not allowed", http.StatusMethodNotAllowed)
+		return
+	}
+
+	var req struct {
+		Password string `json:"password"`
+	}
+	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
+		http.Error(w, "bad request", http.StatusBadRequest)
+		return
+	}
+
+	w.Header().Set("Content-Type", "application/json")
+
+	if !hashMatches(req.Password, passwordHash) {
+		w.WriteHeader(http.StatusUnauthorized)
+		json.NewEncoder(w).Encode(map[string]bool{"ok": false})
+		return
+	}
+
+	h.Store.MarkRulesSeen()
+	json.NewEncoder(w).Encode(map[string]bool{"ok": true})
+}
+
+func (h *QuestHandler) MarkOnboardingSeen(w http.ResponseWriter, r *http.Request) {
+	if r.Method != http.MethodPost {
+		http.Error(w, "method not allowed", http.StatusMethodNotAllowed)
+		return
+	}
+
+	var req struct {
+		Password string `json:"password"`
+	}
+	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
+		http.Error(w, "bad request", http.StatusBadRequest)
+		return
+	}
+
+	w.Header().Set("Content-Type", "application/json")
+
+	if !hashMatches(req.Password, passwordHash) {
+		w.WriteHeader(http.StatusUnauthorized)
+		json.NewEncoder(w).Encode(map[string]bool{"ok": false})
+		return
+	}
+
+	h.Store.MarkOnboardingSeen()
+	json.NewEncoder(w).Encode(map[string]bool{"ok": true})
 }
 
 func (h *QuestHandler) StartStep(w http.ResponseWriter, r *http.Request) {
@@ -113,14 +165,15 @@ func (h *QuestHandler) ValidateAnswer(w http.ResponseWriter, r *http.Request) {
 
 	h.Store.EnsureStepStarted(req.StepID)
 
+	stepNum, _ := strconv.Atoi(strings.TrimPrefix(req.StepID, "step"))
 	expected, exists := stepAnswers[req.StepID]
-	if !exists || !hashMatches(req.Answer, expected) {
+	if !exists || stepNum != h.Store.Get() || !hashMatches(req.Answer, expected) {
 		h.Store.IncrementAttempts(req.StepID)
 		json.NewEncoder(w).Encode(map[string]bool{"correct": false})
 		return
 	}
 
-	stepNum, _ := strconv.Atoi(strings.TrimPrefix(req.StepID, "step"))
+	h.Store.MarkStepCompleted(req.StepID)
 	unlocked := h.Store.Advance(stepNum + 1)
 
 	json.NewEncoder(w).Encode(map[string]any{
@@ -141,19 +194,17 @@ func (h *QuestHandler) GetHint(w http.ResponseWriter, r *http.Request) {
 	}
 
 	rule, exists := stepHints[stepID]
-	if !exists {
+	stepNum, _ := strconv.Atoi(strings.TrimPrefix(stepID, "step"))
+	if !exists || stepNum != h.Store.Get() {
 		json.NewEncoder(w).Encode(map[string]any{"eligible": false})
 		return
 	}
 
 	startedAt := h.Store.EnsureStepStarted(stepID)
-	attempts := h.Store.GetAttempts(stepID)
 	elapsed := time.Since(time.Unix(startedAt, 0))
 
-	eligible := elapsed >= time.Duration(rule.DelaySeconds)*time.Second || attempts >= rule.MaxAttempts
-
-	if !eligible {
-		remaining := int((time.Duration(rule.DelaySeconds)*time.Second - elapsed).Seconds())
+	if elapsed < hintDelay {
+		remaining := int((hintDelay - elapsed).Seconds())
 		json.NewEncoder(w).Encode(map[string]any{
 			"eligible":          false,
 			"seconds_remaining": remaining,

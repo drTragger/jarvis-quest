@@ -6,7 +6,6 @@ import JarvisLayout from '../layouts/JarvisLayout.vue'
 import { getPassword } from '../lib/auth'
 import { stepIds } from '../data/steps'
 import OnboardingOverlay from '../components/OnboardingOverlay.vue'
-import { hasSeenOnboarding, markOnboardingSeen } from '../lib/onboarding'
 import onboarding1 from '../assets/audio/onboarding-1.mp3'
 import onboarding2 from '../assets/audio/onboarding-2.mp3'
 import onboarding3 from '../assets/audio/onboarding-3.mp3'
@@ -30,12 +29,33 @@ const onboardingSteps = [
 
 function onOnboardingFinish() {
 	showOnboarding.value = false
-	markOnboardingSeen()
+	fetch('/api/onboarding/seen', {
+		method: 'POST',
+		headers: { 'Content-Type': 'application/json' },
+		body: JSON.stringify({ password: getPassword() })
+	}).catch(() => {})
 }
 
 const completedCount = computed(() => {
   if (unlocked.value === null) return 0
   return stepIds.filter((id) => id < unlocked.value).length
+})
+
+const REACTOR_STEPS = 8
+const REACTOR_START = 98.6
+const REACTOR_CRITICAL = 4.2
+
+const reactorStability = computed(() => {
+  const progress = Math.min(completedCount.value, REACTOR_STEPS) / REACTOR_STEPS
+  return REACTOR_START - (REACTOR_START - REACTOR_CRITICAL) * progress
+})
+
+const reactorStabilityLabel = computed(() => `${reactorStability.value.toFixed(1)}%`)
+
+const reactorStatusClass = computed(() => {
+  if (reactorStability.value <= 25) return 'is-critical'
+  if (reactorStability.value <= 55) return 'is-warning'
+  return ''
 })
 
 const isFullyCompleted = computed(() => unlocked.value !== null && unlocked.value > stepIds.length)
@@ -65,7 +85,7 @@ onMounted(async () => {
   unlocked.value = data.unlocked
   loading.value = false
 
-  if (!hasSeenOnboarding()) {
+  if (!data.onboarding_seen) {
 	showOnboarding.value = true
   }
 
@@ -115,7 +135,7 @@ function goToTerminal() {
     <div class="hub-telemetry" v-if="!loading">
       <div class="telemetry-item">
         <span class="telemetry-label">СТАБІЛЬНІСТЬ РЕАКТОРА</span>
-        <span class="telemetry-value">98.6%</span>
+        <span class="telemetry-value" :class="reactorStatusClass">{{ reactorStabilityLabel }}</span>
       </div>
       <div class="telemetry-item">
         <span class="telemetry-label">ЧАС СЕАНСУ</span>
@@ -257,6 +277,18 @@ function goToTerminal() {
   font-size: clamp(15px, 3.6vw, 18px);
   color: var(--jarvis-cyan);
 }
+.telemetry-value.is-warning {
+  color: #ffb648;
+}
+.telemetry-value.is-critical {
+  color: var(--jarvis-danger);
+  text-shadow: 0 0 10px rgba(255, 84, 112, 0.7);
+  animation: reactor-flicker 1.4s ease-in-out infinite;
+}
+@keyframes reactor-flicker {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.55; }
+}
 
 .hub-grid {
   display: grid;
@@ -364,7 +396,8 @@ function goToTerminal() {
 
 @media (prefers-reduced-motion: reduce) {
   .radar-sweep,
-  .hub-log-track {
+  .hub-log-track,
+  .telemetry-value.is-critical {
     animation: none;
   }
 }

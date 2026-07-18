@@ -1,7 +1,19 @@
-import { ref } from 'vue'
+import { ref, computed } from 'vue'
 import { getPassword } from '../lib/auth'
 
 const SCRAMBLE_CHARS = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ01#$%&'
+
+function formatRemaining(seconds) {
+  if (seconds >= 3600) {
+    const h = Math.floor(seconds / 3600)
+    const m = Math.floor((seconds % 3600) / 60)
+    return m > 0 ? `${h} год ${m} хв` : `${h} год`
+  }
+  if (seconds >= 60) {
+    return `${Math.floor(seconds / 60)} хв`
+  }
+  return `${seconds} с`
+}
 
 function scrambleReveal(target, text, duration = 900) {
   const start = performance.now()
@@ -25,6 +37,7 @@ export function useHint(stepId) {
   const revealed = ref(false)
   const hintText = ref('')
   const remaining = ref(null)
+  const remainingLabel = computed(() => remaining.value === null ? null : formatRemaining(remaining.value))
   const cooldown = ref(false)
 
   async function checkHint() {
@@ -51,5 +64,5 @@ export function useHint(stepId) {
     }
   }
 
-  return { scanning, revealed, hintText, remaining, cooldown, checkHint }
+  return { scanning, revealed, hintText, remaining, remainingLabel, cooldown, checkHint }
 }
