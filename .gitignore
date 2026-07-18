@@ -4,3 +4,6 @@ dist/
 .DS_Store
 frontend/.vscode
 backend/progress.json
+scripts
+CLAUDE.md
+.claude
