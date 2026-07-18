@@ -3,7 +3,8 @@ export const stepComponents = {
   2: () => import('../quests/Step2.vue'),
   3: () => import('../quests/Step3.vue'),
   4: () => import('../quests/Step4.vue'),
-  5: () => import('../quests/Step5.vue')
+  5: () => import('../quests/Step5.vue'),
+  6: () => import('../quests/Step6.vue')
 }
 
 export const stepIds = Object.keys(stepComponents).map(Number).sort((a, b) => a - b)
@@ -34,6 +35,11 @@ export const collectibles = {
     title: 'Приховані дані зображення',
     excerpt: 'Біти найменшої значущості вилучено з пікселів. Шифр Цезаря розкрито вдруге застосованим зсувом.'
   },
+  6: {
+    date: 'ЗАПИС №6',
+    title: 'Останній маяк старого протоколу',
+    excerpt: 'Ім\'я зчитано вручну українською абеткою Морзе. Позивний власника цього імені вистукано на телеграфному ключі, канал зв\'язку відкрито знову.'
+  },
 }
 
 export const archiveRecords = {
@@ -41,5 +47,6 @@ export const archiveRecords = {
   2: () => import('../quests/archive/Step2Record.vue'),
   3: () => import('../quests/archive/Step3Record.vue'),
   4: () => import('../quests/archive/Step4Record.vue'),
-  5: () => import('../quests/archive/Step5Record.vue')
+  5: () => import('../quests/archive/Step5Record.vue'),
+  6: () => import('../quests/archive/Step6Record.vue')
 }
