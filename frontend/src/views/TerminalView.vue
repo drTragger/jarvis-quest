@@ -3,6 +3,8 @@ import { ref, nextTick, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
 import JarvisLayout from '../layouts/JarvisLayout.vue'
 import { usePlatformDetect } from '../composables/usePlatformDetect'
+import { getPassword } from '../lib/auth'
+import { invalidateProgressCache } from '../router'
 
 const { platform } = usePlatformDetect()
 
@@ -11,6 +13,7 @@ const input = ref('')
 const lines = ref(['JARVIS ONLINE. Введіть команду або "help".'])
 const logEl = ref(null)
 const inputEl = ref(null)
+const currentStep = ref(null)
 
 const responses = {
   help: 'Доступні команди: status, joke, stark, rules, exit',
@@ -21,12 +24,57 @@ const responses = {
   exit: 'Термінал не можна закрити звідси. Скористайтесь кнопкою "Назад".'
 }
 
+async function loadCurrentStep() {
+  const password = getPassword()
+  if (!password) return
+  try {
+    const res = await fetch(`/api/progress?password=${encodeURIComponent(password)}`)
+    if (res.status === 401) return
+    const data = await res.json()
+    currentStep.value = data.unlocked ?? null
+  } catch {
+    currentStep.value = null
+  }
+}
+
+async function tryAsQuestAnswer(cmd) {
+  if (!currentStep.value) return false
+  const password = getPassword()
+  const res = await fetch('/api/answer', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({
+      password,
+      step_id: `step${currentStep.value}`,
+      answer: cmd
+    })
+  })
+  if (res.status === 401) {
+    router.push({ name: 'login' })
+    return true
+  }
+  const data = await res.json()
+  if (data.correct) {
+    invalidateProgressCache()
+    loadCurrentStep()
+    return true
+  }
+  return false
+}
+
 async function run() {
   const cmd = input.value.trim().toLowerCase()
   if (!cmd) return
   lines.value.push(`marmelade@jarvis:~$ ${cmd}`)
-  lines.value.push(responses[cmd] || `Команду "${cmd}" не розпізнано.`)
   input.value = ''
+
+  if (cmd in responses) {
+    lines.value.push(responses[cmd])
+  } else {
+    const accepted = await tryAsQuestAnswer(cmd)
+    lines.value.push(accepted ? 'КОМАНДУ ВИКОНАНО. ПРОТОКОЛ МІСІЇ ОНОВЛЕНО.' : `Команду "${cmd}" не розпізнано.`)
+  }
+
   await nextTick()
   logEl.value?.scrollTo({ top: logEl.value.scrollHeight })
 
@@ -44,6 +92,7 @@ onMounted(() => {
   // (and it made the caret render oddly before the user's first tap), so
   // only autofocus on devices where it's actually helpful.
   if (platform.value !== 'mobile') focusInput()
+  loadCurrentStep()
 })
 </script>
 

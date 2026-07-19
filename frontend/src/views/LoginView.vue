@@ -9,12 +9,14 @@ import { stepIds } from '../data/steps'
 import { playSound } from '../composables/useSound'
 import errorSound from '../assets/audio/access-denied.wav'
 import grantedVoice from '../assets/audio/access-granted.mp3'
+import easterEggVoice from '../assets/audio/login-easter-egg-voice.mp3'
 
 const router = useRouter()
 const password = ref('')
 const error = ref(false)
 const loading = ref(false)
 const granted = ref(false)
+const failCount = ref(0)
 
 async function submit() {
   if (!password.value.trim() || loading.value) return
@@ -26,8 +28,12 @@ async function submit() {
 
   if (res.status === 401) {
     error.value = true
+    failCount.value++
     playSound('access-denied', errorSound, { volume: 0.6 })
     gsap.fromTo('.login-input', { x: -6 }, { x: 0, duration: 0.4, ease: 'elastic.out(1, 0.4)' })
+    if (failCount.value === 3) {
+      playSound('login-easter-egg-voice', easterEggVoice, { volume: 0.9 })
+    }
     return
   }
 
@@ -82,6 +88,7 @@ async function submit() {
       </button>
 
       <p v-if="error" class="login-error">&gt; ДОСТУП ЗАБОРОНЕНО. НЕВІРНИЙ КОД.</p>
+      <p v-if="failCount >= 3" class="login-easter-egg">Три спроби. Статистично, четверта теж не спрацює.</p>
     </template>
 
     <template v-else>
@@ -119,6 +126,12 @@ async function submit() {
   margin-top: 14px;
   font-size: clamp(11px, 2.8vw, 13px);
   color: var(--jarvis-danger);
+}
+.login-easter-egg {
+  margin-top: 10px;
+  font-size: clamp(10px, 2.6vw, 12px);
+  color: var(--jarvis-text-dim);
+  font-style: italic;
 }
 
 .granted-core {

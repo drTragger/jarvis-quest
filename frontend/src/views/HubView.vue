@@ -11,6 +11,7 @@ import onboarding2 from '../assets/audio/onboarding-2.mp3'
 import onboarding3 from '../assets/audio/onboarding-3.mp3'
 import onboarding4 from '../assets/audio/onboarding-4.mp3'
 import onboarding5 from '../assets/audio/onboarding-5.mp3'
+import agentVladImg from '../assets/images/agent-vlad.webp'
 
 const router = useRouter()
 const unlocked = ref(null)
@@ -18,6 +19,19 @@ const loading = ref(true)
 const uptimeSeconds = ref(0)
 let uptimeTimer = null
 const showOnboarding = ref(false)
+const radarClicks = ref(0)
+const showRadarEgg = ref(false)
+let radarEggTimer = null
+const showAgentModal = ref(false)
+
+function onRadarClick() {
+  radarClicks.value++
+  if (radarClicks.value < 5) return
+  radarClicks.value = 0
+  showRadarEgg.value = true
+  clearTimeout(radarEggTimer)
+  radarEggTimer = setTimeout(() => { showRadarEgg.value = false }, 4000)
+}
 
 const onboardingSteps = [
 	{ selector: null, title: 'Ласкаво прошу', text: 'Вітаю, Владе. Це головна панель керування. Дозволь коротко показати, що тут є.', audioSrc: onboarding1 },
@@ -98,6 +112,7 @@ onMounted(async () => {
 
 onUnmounted(() => {
   if (uptimeTimer) clearInterval(uptimeTimer)
+  clearTimeout(radarEggTimer)
 })
 
 function goToNextMission() {
@@ -116,20 +131,23 @@ function goToTerminal() {
     <div class="hub-head">
       <div class="hub-head-text">
         <h1 class="hub-title">Панель керування JARVIS</h1>
-        <p class="hub-operator">ОПЕРАТОР: ВЛАД&nbsp;&nbsp;·&nbsp;&nbsp;РІВЕНЬ ДОСТУПУ: ALPHA</p>
+        <p class="hub-operator">ОПЕРАТОР: <span class="operator-name" @click="showAgentModal = true">ВЛАД</span>&nbsp;&nbsp;·&nbsp;&nbsp;РІВЕНЬ ДОСТУПУ: ALPHA</p>
       </div>
 
-      <svg class="hub-radar" viewBox="0 0 100 100" aria-hidden="true">
-        <circle class="radar-ring" cx="50" cy="50" r="46" />
-        <circle class="radar-ring" cx="50" cy="50" r="32" />
-        <circle class="radar-ring" cx="50" cy="50" r="18" />
-        <line class="radar-cross" x1="4" y1="50" x2="96" y2="50" />
-        <line class="radar-cross" x1="50" y1="4" x2="50" y2="96" />
-        <g class="radar-sweep">
-          <path d="M 50 50 L 50 4 A 46 46 0 0 1 90 26 Z" />
-        </g>
-        <circle class="radar-dot" cx="50" cy="50" r="3" />
-      </svg>
+      <div class="hub-radar-wrap" @click="onRadarClick">
+        <svg class="hub-radar" viewBox="0 0 100 100" aria-hidden="true">
+          <circle class="radar-ring" cx="50" cy="50" r="46" />
+          <circle class="radar-ring" cx="50" cy="50" r="32" />
+          <circle class="radar-ring" cx="50" cy="50" r="18" />
+          <line class="radar-cross" x1="4" y1="50" x2="96" y2="50" />
+          <line class="radar-cross" x1="50" y1="4" x2="50" y2="96" />
+          <g class="radar-sweep">
+            <path d="M 50 50 L 50 4 A 46 46 0 0 1 90 26 Z" />
+          </g>
+          <circle class="radar-dot" cx="50" cy="50" r="3" />
+        </svg>
+        <p v-if="showRadarEgg" class="radar-egg">Продовжуй тицяти — реактору лестить увага.</p>
+      </div>
     </div>
 
     <div class="hub-telemetry" v-if="!loading">
@@ -195,6 +213,14 @@ function goToTerminal() {
 	:steps="onboardingSteps"
 	@finish="onOnboardingFinish"
 />
+
+  <div v-if="showAgentModal" class="agent-modal-backdrop" @click.self="showAgentModal = false">
+    <div class="agent-modal">
+      <button class="agent-modal-close" type="button" @click="showAgentModal = false">&times;</button>
+      <img class="agent-modal-img" :src="agentVladImg" alt="Агент Влад" />
+      <p class="agent-modal-caption">АГЕНТ ВЛАД &middot; РІВЕНЬ ЗАГРОЗИ: ТІЛЬКИ ДЛЯ ТОРТІВ</p>
+    </div>
+  </div>
 </template>
 
 <style scoped>
@@ -220,11 +246,93 @@ function goToTerminal() {
   letter-spacing: 1px;
   margin: 0;
 }
+.operator-name {
+  color: var(--jarvis-cyan);
+  cursor: pointer;
+  text-decoration: underline dotted;
+  text-underline-offset: 2px;
+}
+.operator-name:hover {
+  text-shadow: 0 0 8px rgba(71, 191, 255, 0.7);
+}
 
+.agent-modal-backdrop {
+  position: fixed;
+  inset: 0;
+  z-index: 200;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 24px;
+  background: rgba(5, 7, 10, 0.85);
+  backdrop-filter: blur(3px);
+}
+.agent-modal {
+  position: relative;
+  width: 100%;
+  max-width: 340px;
+  background: rgba(13, 18, 32, 0.95);
+  border: 1px solid rgba(71, 191, 255, 0.5);
+  border-radius: 8px;
+  padding: 20px;
+  box-shadow: 0 0 40px rgba(71, 191, 255, 0.2);
+  text-align: center;
+}
+.agent-modal-close {
+  position: absolute;
+  top: 8px;
+  right: 10px;
+  background: none;
+  border: none;
+  color: var(--jarvis-text-dim);
+  font-size: 22px;
+  line-height: 1;
+  cursor: pointer;
+  padding: 4px;
+}
+.agent-modal-close:hover {
+  color: var(--jarvis-cyan);
+}
+.agent-modal-img {
+  width: 100%;
+  border-radius: 6px;
+  margin-bottom: 14px;
+  display: block;
+}
+.agent-modal-caption {
+  font-family: var(--jarvis-mono);
+  font-size: clamp(10px, 2.6vw, 12px);
+  letter-spacing: 1px;
+  color: var(--jarvis-cyan);
+  margin: 0;
+}
+
+.hub-radar-wrap {
+  position: relative;
+  flex-shrink: 0;
+}
 .hub-radar {
   width: clamp(56px, 14vw, 84px);
   height: clamp(56px, 14vw, 84px);
-  flex-shrink: 0;
+}
+.radar-egg {
+  position: fixed;
+  left: 50%;
+  bottom: 24px;
+  transform: translateX(-50%);
+  width: max-content;
+  max-width: min(260px, calc(100vw - 32px));
+  padding: 8px 12px;
+  background: rgba(13, 18, 32, 0.92);
+  border: 1px solid rgba(71, 191, 255, 0.4);
+  border-radius: 4px;
+  font-family: var(--jarvis-mono);
+  font-size: 10px;
+  line-height: 1.4;
+  color: var(--jarvis-text-dim);
+  font-style: italic;
+  text-align: center;
+  z-index: 100;
 }
 .radar-ring {
   fill: none;

@@ -4,7 +4,8 @@ export const stepComponents = {
   3: () => import('../quests/Step3.vue'),
   4: () => import('../quests/Step4.vue'),
   5: () => import('../quests/Step5.vue'),
-  6: () => import('../quests/Step6.vue')
+  6: () => import('../quests/Step6.vue'),
+  7: () => import('../quests/Step7.vue')
 }
 
 export const stepIds = Object.keys(stepComponents).map(Number).sort((a, b) => a - b)
@@ -40,6 +41,11 @@ export const collectibles = {
     title: 'Останній маяк старого протоколу',
     excerpt: 'Ім\'я зчитано вручну українською абеткою Морзе. Позивний власника цього імені вистукано на телеграфному ключі, канал зв\'язку відкрито знову.'
   },
+  7: {
+    date: 'ЗАПИС №7',
+    title: 'Джерело сигналу знайдено',
+    excerpt: 'Напрямок і сила сигналу зійшлися в одній точці на місцевості. Керівний протокол виконано в іншому підвузлі системи.'
+  },
 }
 
 export const archiveRecords = {
@@ -48,5 +54,6 @@ export const archiveRecords = {
   3: () => import('../quests/archive/Step3Record.vue'),
   4: () => import('../quests/archive/Step4Record.vue'),
   5: () => import('../quests/archive/Step5Record.vue'),
-  6: () => import('../quests/archive/Step6Record.vue')
+  6: () => import('../quests/archive/Step6Record.vue'),
+  7: () => import('../quests/archive/Step7Record.vue')
 }

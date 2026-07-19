@@ -120,6 +120,18 @@ onMounted(() => {
           </p>
         </div>
       </div>
+
+      <div class="rule-item">
+        <span class="rule-index">06</span>
+        <div class="rule-body">
+          <p class="rule-title">У системі є великодки</p>
+          <p class="rule-text">
+            Десь у інтерфейсі заховано кілька непотрібних для проходження дрібниць.
+            Вони ні на що не впливають і не дають жодної переваги — просто прикол.
+            Знайдеш — вважай бонусом.
+          </p>
+        </div>
+      </div>
     </div>
 
     <button class="jarvis-btn" :disabled="loading" @click="start">
