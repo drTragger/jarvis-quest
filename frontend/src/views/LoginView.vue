@@ -69,9 +69,9 @@ async function submit() {
 
       <input
         v-model="password"
-        type="password"
+        type="text"
         name="access-code"
-        class="jarvis-input login-input"
+        class="jarvis-input login-input login-input-masked"
         :class="{ 'is-error': error }"
         placeholder="КОД ДОСТУПУ"
         autocomplete="new-password"
@@ -118,6 +118,10 @@ async function submit() {
 .login-input {
   margin-bottom: 16px;
   text-align: center;
+}
+.login-input-masked {
+  -webkit-text-security: disc;
+  text-security: disc;
 }
 .login-btn {
   margin-top: 4px;
