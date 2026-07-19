@@ -1,0 +1,24 @@
+name: Deploy
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+jobs:
+  deploy:
+    runs-on: [self-hosted, jarvis-quest-pi]
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Build
+        run: make build
+
+      - name: Restart service
+        run: sudo systemctl restart jarvis-quest
+
+      - name: Verify service is up
+        run: |
+          sleep 2
+          sudo systemctl is-active jarvis-quest

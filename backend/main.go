@@ -31,8 +31,13 @@ func main() {
 
 	mux.Handle("/", spaHandler("./dist"))
 
-	log.Println("Server on :8080")
-	log.Fatal(http.ListenAndServe(":8080", mux))
+	addr := os.Getenv("APP_ADDR")
+	if addr == "" {
+		addr = ":8080"
+	}
+
+	log.Printf("Server on %s", addr)
+	log.Fatal(http.ListenAndServe(addr, mux))
 }
 
 // spaHandler serves static files from root, falling back to index.html for
