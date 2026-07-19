@@ -16,7 +16,11 @@ func main() {
 
 	mux := http.NewServeMux()
 
-	store := handlers.NewProgressStore("./progress.json")
+	progressPath := os.Getenv("PROGRESS_PATH")
+	if progressPath == "" {
+		progressPath = "./progress.json"
+	}
+	store := handlers.NewProgressStore(progressPath)
 	quest := &handlers.QuestHandler{Store: store}
 
 	mux.HandleFunc("/api/answer", quest.ValidateAnswer)
