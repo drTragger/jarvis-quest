@@ -231,6 +231,7 @@ async function submit() {
 }
 .signal-canvas {
   flex: 1;
+  min-width: 0;
   width: 100%;
   aspect-ratio: 400 / 80;
   max-height: 80px;
