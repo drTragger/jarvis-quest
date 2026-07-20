@@ -13,15 +13,15 @@ import { stepIds } from '../data/steps'
 import { stopAllSounds } from '../composables/useSound'
 
 const routes = [
-  { path: '/', name: 'welcome', component: WelcomeView },
-  { path: '/login', name: 'login', component: LoginView },
-  { path: '/rules', name: 'rules', component: RulesView },
-  { path: '/hub', name: 'hub', component: HubView },
-  { path: '/archive', name: 'archive', component: ArchiveView },
-  { path: '/terminal', name: 'terminal', component: TerminalView },
+  { path: '/', name: 'welcome', component: WelcomeView, meta: { title: 'J.A.R.V.I.S.' } },
+  { path: '/login', name: 'login', component: LoginView, meta: { title: 'Вхід — JARVIS' } },
+  { path: '/rules', name: 'rules', component: RulesView, meta: { title: 'Протокол доступу — JARVIS' } },
+  { path: '/hub', name: 'hub', component: HubView, meta: { title: 'Панель керування — JARVIS' } },
+  { path: '/archive', name: 'archive', component: ArchiveView, meta: { title: 'Архів — JARVIS' } },
+  { path: '/terminal', name: 'terminal', component: TerminalView, meta: { title: 'Термінал — JARVIS' } },
   { path: '/quest/:stepId(\\d+)', name: 'quest-step', component: QuestStepLoader, props: true },
-  { path: '/finish', name: 'finish', component: FinishView },
-  { path: '/:pathMatch(.*)*', name: 'not-found', component: NotFoundView }
+  { path: '/finish', name: 'finish', component: FinishView, meta: { title: 'Місію завершено — JARVIS' } },
+  { path: '/:pathMatch(.*)*', name: 'not-found', component: NotFoundView, meta: { title: 'Не знайдено — JARVIS' } }
 ]
 
 const router = createRouter({
@@ -84,8 +84,14 @@ router.beforeEach(async (to) => {
   }
 })
 
-router.afterEach(() => {
+router.afterEach((to) => {
   stopAllSounds()
+
+  if (to.name === 'quest-step') {
+    document.title = `Квест ${to.params.stepId} — JARVIS`
+  } else {
+    document.title = to.meta?.title || 'JARVIS'
+  }
 })
 
 export default router
